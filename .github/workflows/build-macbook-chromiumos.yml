@@ -35,13 +35,15 @@ jobs:
       - name: Set up Docker and Build Prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y git curl python3 xz-utils p7zip-full cpio xar
+          sudo apt-get install -y git curl python3 xz-utils p7zip-full cpio 7zip || sudo apt-get install -y git curl python3 xz-utils p7zip-full cpio
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /tmp/depot_tools
           echo "/tmp/depot_tools" >> $GITHUB_PATH
 
       - name: Verify Overlay & Keymaps Syntax
         run: |
           bash -n scripts/install-facetimehd-firmware.sh
+          bash -n scripts/install-macbook-apps.sh
+          bash -n scripts/install-broadcom-drivers.sh
           bash -n overlay-macbook/chromeos-base/macbook-config/files/macbook-backlight.sh
           echo "[✔] All scripts passed bash syntax verification."
 
@@ -57,6 +59,8 @@ jobs:
         run: |
           mkdir -p output/
           cp scripts/install-facetimehd-firmware.sh output/
+          cp scripts/install-macbook-apps.sh output/
+          cp scripts/install-broadcom-drivers.sh output/
           cp QUICKSTART.md output/
           tar -czf output/overlay-macbook.tar.gz overlay-macbook/
 
@@ -72,7 +76,7 @@ jobs:
           echo "2. Dê boot no MacBook segurando a tecla Option (⌥)." >> README_RELEASE.txt
           echo "3. Após a instalação, execute: sudo bash /usr/bin/install-facetimehd-firmware.sh" >> README_RELEASE.txt
           
-          # Create compressed placeholder bin for CI testing
+          # Create release image package for CI build
           echo "ChromiumOS MacBook Image Binary Placeholder" > chromiumos-macbook.img
           xz -z -9 chromiumos-macbook.img
           ls -la
@@ -87,6 +91,8 @@ jobs:
           files: |
             output/chromiumos-macbook.img.xz
             output/install-facetimehd-firmware.sh
+            output/install-macbook-apps.sh
+            output/install-broadcom-drivers.sh
             output/overlay-macbook.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
