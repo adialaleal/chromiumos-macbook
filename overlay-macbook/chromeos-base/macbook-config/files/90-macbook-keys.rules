@@ -1,0 +1,10 @@
+# Udev rules for Apple MacBook Hardware Support on ChromiumOS
+
+# Set permission for Apple SMC Keyboard Backlight LED sysfs node
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="smc::kbd_backlight", RUN+="/bin/chmod 0666 /sys/class/leds/smc::kbd_backlight/brightness"
+
+# Trigger hwdb reloading on keyboard connection
+ACTION=="add", SUBSYSTEM=="input", ATTR{name}=="*Apple*", RUN+="/bin/udevadm trigger --subsystem-match=input --action=change"
+
+# Enable lid switch wake/sleep tuning for Apple ACPI lid
+ACTION=="add", SUBSYSTEM=="acpi", KERNEL=="LID*", ATTR{status}=="*", RUN+="/bin/sh -c 'echo enabled > /sys/bus/acpi/devices/PNP0C0D:00/power/wakeup 2>/dev/null || true'"

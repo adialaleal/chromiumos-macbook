@@ -1,0 +1,13 @@
+# Make.defaults for Apple MacBook ChromiumOS Overlay
+# Target hardware: MacBook Air / Pro 2013-2017 (Intel x86_64, Broadcom WiFi, Apple SMC, FaceTime HD)
+
+USE="${USE} applesmc facetimehd broadcom_wl b43 bluetooth macbook_keyboard macbook_touchpad alsa_apple"
+
+# Kernel config flags for Apple hardware support
+LINUX_FIRMWARE="${LINUX_FIRMWARE} b43-firmware brcm"
+
+# Input configuration override
+INPUT_DEVICES="libinput synaptics evdev"
+
+# Audio card driver support
+ALSA_CARDS="hda-intel snd-hda-codec-cirrus snd-hda-codec-realtek"

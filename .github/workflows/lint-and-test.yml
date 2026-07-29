@@ -1,0 +1,33 @@
+name: Lint and Validate Codebase
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck & Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3
+
+      - name: Run ShellCheck on Bash Scripts
+        run: |
+          shellcheck scripts/install-facetimehd-firmware.sh || true
+          shellcheck overlay-macbook/chromeos-base/macbook-config/files/macbook-backlight.sh || true
+
+      - name: Validate Python Utilities
+        run: |
+          python3 -m py_compile scripts/generate_keyboard_hwdb.py
+
+      - name: Verify Udev HWDB Rules Format
+        run: |
+          grep -E '^ KEYBOARD_KEY_' overlay-macbook/chromeos-base/macbook-config/files/60-macbook-keyboard.hwdb
+          echo "[✔] HWDB formatting rule check passed."

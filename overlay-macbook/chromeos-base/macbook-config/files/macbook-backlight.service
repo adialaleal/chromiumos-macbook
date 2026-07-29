@@ -1,0 +1,11 @@
+[Unit]
+Description=Apple MacBook Keyboard Backlight Initialization Service
+After=syslog.target systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/macbook-backlight.sh init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

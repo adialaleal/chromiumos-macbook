@@ -1,0 +1,28 @@
+# Hardware database rules for Apple MacBook Keyboards (MacBook Air / Pro 2013-2017)
+# Maps hardware scancodes to standard Linux/ChromeOS input event keycodes.
+
+###########################################################
+# Apple Internal Keyboard (USB / HID Apple driver)
+###########################################################
+evdev:input:b0003v05Acp*
+ KEYBOARD_KEY_7003a=brightnessdown   # F1 -> Brightness Down
+ KEYBOARD_KEY_7003b=brightnessup     # F2 -> Brightness Up
+ KEYBOARD_KEY_7003c=scale            # F3 -> Mission Control / Overview
+ KEYBOARD_KEY_7003d=homepage         # F4 -> Launchpad / ChromeOS Launcher
+ KEYBOARD_KEY_7003e=kbdillumdown     # F5 -> Keyboard Backlight Down
+ KEYBOARD_KEY_7003f=kbdillumup       # F6 -> Keyboard Backlight Up
+ KEYBOARD_KEY_70040=previoussong     # F7 -> Previous Track
+ KEYBOARD_KEY_70041=playpause        # F8 -> Play / Pause
+ KEYBOARD_KEY_70042=nextsong         # F9 -> Next Track
+ KEYBOARD_KEY_70043=mute             # F10 -> Mute
+ KEYBOARD_KEY_70044=volumedown       # F11 -> Volume Down
+ KEYBOARD_KEY_70045=volumeup         # F12 -> Volume Up
+ KEYBOARD_KEY_70066=power            # Eject key -> Power / Sleep
+
+###########################################################
+# Apple Internal Keyboard (Legacy AT Translated / SPI bus)
+###########################################################
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnApple*:pn*
+ KEYBOARD_KEY_ee=screenlock          # Fn + Power -> Lock screen
+ KEYBOARD_KEY_85=kbdillumdown        # Fn + F5
+ KEYBOARD_KEY_86=kbdillumup          # Fn + F6
