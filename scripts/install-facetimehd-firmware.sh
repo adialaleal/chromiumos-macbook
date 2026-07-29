@@ -42,20 +42,11 @@ if [[ -f "$TARGET_FILE" ]]; then
 fi
 
 echo -e "${YELLOW}[1/4] Verificando dependências de extração...${NC}"
-MISSING_TOOLS=()
-for tool in curl p7zip cpio xar; do
-    if ! command -v "$tool" &>/dev/null; then
-        MISSING_TOOLS+=("$tool")
-    fi
-done
 
-if [[ ${#MISSING_TOOLS[@]} -gt 0 ]]; then
-    echo -e "${YELLOW}Instalando ferramentas de extração ausentes: ${MISSING_TOOLS[*]}${NC}"
-    if command -v apt-get &>/dev/null; then
-        apt-get update && apt-get install -y p7zip-full cpio xarutils curl
-    elif command -v emerge &>/dev/null; then
-        emerge -qn app-arch/p7zip app-arch/xar app-arch/cpio net-misc/curl
-    fi
+if command -v apt-get &>/dev/null; then
+    apt-get update && apt-get install -y p7zip-full cpio curl 7zip || apt-get install -y p7zip-full cpio curl || true
+elif command -v emerge &>/dev/null; then
+    emerge -qn app-arch/p7zip app-arch/cpio net-misc/curl || true
 fi
 
 mkdir -p "$TEMP_DIR"
@@ -69,56 +60,42 @@ echo -e "${YELLOW}[2/4] Baixando atualização pública da Apple (OS X Recovery)
 curl -sSL --progress-bar "$MACOS_PKG_URL" -o macos_update.pkg
 
 echo -e "${YELLOW}[3/4] Extraindo firmware da câmera (AppleCameraInterface.kext)...${NC}"
-xar -xf macos_update.pkg 2>/dev/null || 7z x -y macos_update.pkg >/dev/null
+if command -v 7z &>/dev/null; then
+    7z x -y macos_update.pkg >/dev/null || true
+elif command -v 7za &>/dev/null; then
+    7za x -y macos_update.pkg >/dev/null || true
+elif command -v xar &>/dev/null; then
+    xar -xf macos_update.pkg 2>/dev/null || true
+fi
 
 if [[ -f "Payload" ]]; then
-    zcat Payload | cpio -idv "*AppleCameraInterface.kext*" 2>/dev/null || 7z x -y Payload >/dev/null
-elif [[ -f "SecUpd2015-006Yosemite.pkg" ]]; then
-    7z x -y SecUpd2015-006Yosemite.pkg >/dev/null
-    zcat Payload | cpio -idv "*AppleCameraInterface.kext*" 2>/dev/null || true
+    (zcat Payload 2>/dev/null || gzip -dc Payload 2>/dev/null) | cpio -idv "*AppleCameraInterface.kext*" 2>/dev/null || 7z x -y Payload >/dev/null || true
 fi
 
 # Locate firmware file inside extracted kext
 FOUND_FW=$(find . -name "firmware.dat" -o -name "AppleCameraInterface" 2>/dev/null | head -n 1 || true)
-
-if [[ -z "$FOUND_FW" ]]; then
-    echo -e "${YELLOW}Procurando arquivos de firmware no pacote estendido...${NC}"
-    # Alternative extraction logic using facetimehd-firmware tool if available
-    if command -v facetimehd-firmware-extract &>/dev/null; then
-        facetimehd-firmware-extract "$TEMP_DIR"
-    fi
-fi
 
 if [[ -f "$TEMP_DIR/firmware.dat" ]]; then
     cp "$TEMP_DIR/firmware.dat" "$TARGET_FILE"
 elif [[ -n "$FOUND_FW" && -f "$FOUND_FW" ]]; then
     cp "$FOUND_FW" "$TARGET_FILE"
 else
-    # Fallback method: Direct extract using python script if available
-    echo -e "${YELLOW}Executando extração via extrator secundário...${NC}"
-    cat << 'EOF' > extract_fw.py
-import sys, re
-
-def extract(pkg_path, out_path):
-    with open(pkg_path, 'rb') as f:
-        data = f.read()
-    # Search for magic bytes of camera firmware blob
-    pos = data.find(b'FaceTime HD Camera Firmware')
-    if pos != -1:
-        start = pos - 0x100
-        fw_data = data[start:start + 0x40000]
-        with open(out_path, 'wb') as out:
-            out.write(fw_data)
-        return True
-    return False
-
-if __name__ == '__main__':
-    extract(sys.argv[1], sys.argv[2])
-EOF
-    python3 extract_fw.py macos_update.pkg "$TARGET_FILE" || true
+    # Python binary scanner fallback
+    echo -e "${YELLOW}Executando extração via extrator de emergência Python...${NC}"
+    python3 -c "
+import sys
+with open('macos_update.pkg', 'rb') as f:
+    data = f.read()
+pos = data.find(b'FaceTime HD Camera Firmware')
+if pos != -1:
+    with open('$TARGET_FILE', 'wb') as out:
+        out.write(data[pos-0x100:pos+0x40000])
+    print('[✔] Firmware localizado e gravado via Python Scanner!')
+" || true
 fi
 
 # Clean up temporary directory
+cd /
 rm -rf "$TEMP_DIR"
 
 if [[ -f "$TARGET_FILE" ]]; then
