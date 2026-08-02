@@ -23,9 +23,10 @@ show_menu() {
     echo -e " 5) 💡 Testar Retroiluminação do Teclado"
     echo -e " 6) 🌡️  Verificar Temperatura da CPU e Ventoinhas"
     echo -e " 7) 📖 Abrir Guia Rápido de Instalação (QUICKSTART)"
+    echo -e " 8) 💾 Gravar Imagem no Pendrive (TUI Interativa)"
     echo -e " 0) 🚪 Sair"
     echo -e "${CYAN}====================================================${NC}"
-    echo -n "Escolha uma opção [0-7]: "
+    echo -n "Escolha uma opção [0-8]: "
 }
 
 while true; do
@@ -63,6 +64,10 @@ while true; do
             ;;
         7)
             cat QUICKSTART.md
+            echo ""; read -r -p "Pressione Enter para voltar ao menu..."
+            ;;
+        8)
+            bash scripts/burn_to_pendrive.sh
             echo ""; read -r -p "Pressione Enter para voltar ao menu..."
             ;;
         0)
