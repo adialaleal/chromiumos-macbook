@@ -1,6 +1,4 @@
-build_workspace/depot_tools/
-build_workspace/bin/
-build_workspace/src/
+build_workspace/
 *.tmp
 *.log
 __pycache__/
